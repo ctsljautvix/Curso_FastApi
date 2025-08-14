@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Todos os Endpoints - FastAPI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .endpoint-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        .endpoint-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #007bff;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"], input[type="email"], input[type="password"], input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Teste de Todos os Endpoints de Usuários</h1>
+        
+        <!-- POST - Criar usuário -->
+        <div class="endpoint-section">
+            <div class="endpoint-title">POST /users/ - Criar Usuário</div>
+            <form id="createForm">
+                <div class="form-group">
+                    <label for="createUsername">Username:</label>
+                    <input type="text" id="createUsername" required>
+                </div>
+                <div class="form-group">
+                    <label for="createEmail">Email:</label>
+                    <input type="email" id="createEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="createPassword">Senha:</label>
+                    <input type="password" id="createPassword" required>
+                </div>
+                <button type="submit">Criar Usuário</button>
+            </form>
+            <div id="createResult" class="result"></div>
+        </div>
+
+        <!-- GET - Listar usuários -->
+        <div class="endpoint-section">
+            <div class="endpoint-title">GET /users/ - Listar Todos os Usuários</div>
+            <button onclick="listUsers()">Listar Usuários</button>
+            <div id="listResult" class="result"></div>
+        </div>
+
+        <!-- GET - Buscar usuário específico -->
+        <div class="endpoint-section">
+            <div class="endpoint-title">GET /users/{id} - Buscar Usuário Específico</div>
+            <div class="form-group">
+                <label for="getUserId">ID do Usuário:</label>
+                <input type="number" id="getUserId" min="1" required>
+            </div>
+            <button onclick="getUser()">Buscar Usuário</button>
+            <div id="getResult" class="result"></div>
+        </div>
+
+        <!-- PUT - Atualizar usuário -->
+        <div class="endpoint-section">
+            <div class="endpoint-title">PUT /users/{id} - Atualizar Usuário</div>
+            <div class="form-group">
+                <label for="updateUserId">ID do Usuário:</label>
+                <input type="number" id="updateUserId" min="1" required>
+            </div>
+            <div class="form-group">
+                <label for="updateUsername">Novo Username:</label>
+                <input type="text" id="updateUsername" required>
+            </div>
+            <div class="form-group">
+                <label for="updateEmail">Novo Email:</label>
+                <input type="email" id="updateEmail" required>
+            </div>
+            <div class="form-group">
+                <label for="updatePassword">Nova Senha:</label>
+                <input type="password" id="updatePassword" required>
+            </div>
+            <button onclick="updateUser()">Atualizar Usuário</button>
+            <div id="updateResult" class="result"></div>
+        </div>
+
+        <!-- DELETE - Deletar usuário -->
+        <div class="endpoint-section">
+            <div class="endpoint-title">DELETE /users/{id} - Deletar Usuário</div>
+            <div class="form-group">
+                <label for="deleteUserId">ID do Usuário:</label>
+                <input type="number" id="deleteUserId" min="1" required>
+            </div>
+            <button onclick="deleteUser()">Deletar Usuário</button>
+            <div id="deleteResult" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        // Função para mostrar resultado
+        function showResult(elementId, data, isSuccess = true) {
+            const element = document.getElementById(elementId);
+            element.className = isSuccess ? 'result success' : 'result error';
+            element.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            element.style.display = 'block';
+        }
+
+        // POST - Criar usuário
+        document.getElementById('createForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                username: document.getElementById('createUsername').value,
+                email: document.getElementById('createEmail').value,
+                password: document.getElementById('createPassword').value
+            };
+            
+            try {
+                const response = await fetch('http://localhost:8000/users/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                showResult('createResult', data, response.ok);
+                
+                if (response.ok) {
+                    document.getElementById('createForm').reset();
+                }
+            } catch (error) {
+                showResult('createResult', { error: error.message }, false);
+            }
+        });
+
+        // GET - Listar usuários
+        async function listUsers() {
+            try {
+                const response = await fetch('http://localhost:8000/users/');
+                const data = await response.json();
+                showResult('listResult', data, response.ok);
+            } catch (error) {
+                showResult('listResult', { error: error.message }, false);
+            }
+        }
+
+        // GET - Buscar usuário específico
+        async function getUser() {
+            const userId = document.getElementById('getUserId').value;
+            if (!userId) {
+                showResult('getResult', { error: 'ID é obrigatório' }, false);
+                return;
+            }
+            
+            try {
+                const response = await fetch(`http://localhost:8000/users/${userId}`);
+                const data = await response.json();
+                showResult('getResult', data, response.ok);
+            } catch (error) {
+                showResult('getResult', { error: error.message }, false);
+            }
+        }
+
+        // PUT - Atualizar usuário
+        async function updateUser() {
+            const userId = document.getElementById('updateUserId').value;
+            if (!userId) {
+                showResult('updateResult', { error: 'ID é obrigatório' }, false);
+                return;
+            }
+            
+            const formData = {
+                username: document.getElementById('updateUsername').value,
+                email: document.getElementById('updateEmail').value,
+                password: document.getElementById('updatePassword').value
+            };
+            
+            try {
+                const response = await fetch(`http://localhost:8000/users/${userId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                showResult('updateResult', data, response.ok);
+            } catch (error) {
+                showResult('updateResult', { error: error.message }, false);
+            }
+        }
+
+        // DELETE - Deletar usuário
+        async function deleteUser() {
+            const userId = document.getElementById('deleteUserId').value;
+            if (!userId) {
+                showResult('deleteResult', { error: 'ID é obrigatório' }, false);
+                return;
+            }
+            
+            try {
+                const response = await fetch(`http://localhost:8000/users/${userId}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                showResult('deleteResult', data, response.ok);
+            } catch (error) {
+                showResult('deleteResult', { error: error.message }, false);
+            }
+        }
+    </script>
+</body>
+</html>

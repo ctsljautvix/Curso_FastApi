@@ -29,6 +29,18 @@ def exercicio_1_html_aula_2():
     """
 
 
+@app.get('/test-form', response_class=HTMLResponse)
+def test_form():
+    with open('fast_zero/test_form.html', 'r', encoding='utf-8') as f:
+        return f.read()
+
+
+@app.get('/test-all-endpoints', response_class=HTMLResponse)
+def test_all_endpoints():
+    with open('fast_zero/test_all_endpoints.html', 'r', encoding='utf-8') as f:
+        return f.read()
+
+
 @app.post('/users/', status_code=HTTPStatus.CREATED, response_model=UserPublic)
 def create_user(user: UserSchema):
     user_with_id = UserDB(**user.model_dump(), id=len(database) + 1)
