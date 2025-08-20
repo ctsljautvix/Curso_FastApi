@@ -1,0 +1,19 @@
+feat(api): CRUD de usuários com SQLAlchemy e Pydantic; sessões e HTML de teste
+
+- Adiciona `fast_zero/database.py` com engine SQLAlchemy e `get_session` baseado em `Settings().DATABASE_URL`
+- Implementa endpoints:
+  - POST /users/ (criação com checagem de unicidade de username/email)
+  - GET /users/ (listagem paginada por skip/limit)
+  - GET /users/{id} (detalhe por id; 404 quando não encontrado)
+  - PUT /users/{id} (atualização; trata `IntegrityError` para conflitos)
+  - DELETE /users/{id} (remoção; 404 quando não encontrado)
+- Expõe páginas HTML de teste: `/test-form` e `/test-all-endpoints`
+- Cria schemas Pydantic (`Message`, `UserSchema`, `UserPublic`, `UserList`) com `from_attributes=True`
+
+test: adiciona testes para endpoints e modelo
+
+- Fixtures de sessão em memória e override de dependência (`conftest.py`)
+- Casos de sucesso e erro para criação, listagem, atualização, remoção e busca por id
+- Teste do modelo `User` validando `created_at`/`updated_at` com hook de tempo
+
+chore(config): carrega `DATABASE_URL` via `.env` usando `pydantic-settings`
